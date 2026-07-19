@@ -9,12 +9,18 @@ echo "=== Relay transfer ==="
 echo "--- Enter relay password when prompted:"
 R list >/dev/null 2>&1 || { echo "auth failed"; exit 1; }
 
-read -p "Backup URL: " URL
-echo "--- Staging on relay..."
-OUT=$(R stage "$URL") || { echo "$OUT"; exit 1; }
-echo "$OUT"
-NAME=$(echo "$OUT" | awk '/^STAGING/{print $2}')
-[ -n "$NAME" ] || { echo "stage failed"; exit 1; }
+if [ -n "$1" ]; then
+  NAME=$1
+  echo "--- Resuming job $NAME"
+else
+  read -p "Backup URL: " URL
+  echo "--- Staging on relay..."
+  OUT=$(R stage "$URL") || { echo "$OUT"; exit 1; }
+  echo "$OUT"
+  NAME=$(echo "$OUT" | awk '/^STAGING/{print $2}')
+  [ -n "$NAME" ] || { echo "stage failed"; exit 1; }
+  echo "--- If this session dies, resume with: bash relay-cs.sh $NAME"
+fi
 
 while :; do
   S=$(R status "$NAME")
